@@ -54,7 +54,7 @@ export default {
         'good-orange': '#E95214',
   		},
 			backgroundImage: {
-				conta: "linear-gradient(rgba(26, 64, 143, 0.1), rgba(26, 64, 143, 10)), url('/imgs/conta.jpg')"
+				conta: "linear-gradient(rgba(26, 64, 143, 0.1), rgba(26, 64, 143, 10)), url('/imgs/conta.png')"
 			}
   	}
   },

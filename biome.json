@@ -23,6 +23,13 @@
 			"recommended": true,
 			"style": {
 				"useImportType": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off",
+				"noExplicitAny": "off"
+			},
+			"correctness": {
+				"useExhaustiveDependencies": "off"
 			}
 		}
 	},

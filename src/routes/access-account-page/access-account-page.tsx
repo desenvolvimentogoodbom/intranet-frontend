@@ -1,24 +1,26 @@
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Label } from '@radix-ui/react-label';
-import { Input } from '../components/ui/input';
-import { Button } from '../components/ui/button';
-import Logo from '../assets/logo_padrao.svg';
+import { Input } from '../../components/ui/input';
+import { Button } from '../../components/ui/button';
+import Logo from '../../assets/logo_padrao.svg';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { formatDocument } from '../masks/document-mask';
-
-const formSchema = z.object({
-	cpf: z.string().email({ message: 'Por favor, insira um CPF válido.' }),
-	password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres.' }),
-});
-
-function onSubmit(values: z.infer<typeof formSchema>) {
-	console.log(values);
-}
+import { formatDocument } from '../../masks/document-mask';
+import { useNavigate } from 'react-router';
+import React from 'react';
+import AccessAccountStore from './access-account-store';
+import { useToast } from '../../hooks/use-toast';
+import { AccessAccountDto } from './acess-account-service';
+import { Toaster } from '../../components/ui/toaster';
 
 function AccessAccountPage() {
+	const store = React.useMemo(() => new AccessAccountStore(), []);
+	const { toast } = useToast();
+	const navigate = useNavigate();
+
+	const formSchema = store.getFormSchema();
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -26,6 +28,41 @@ function AccessAccountPage() {
 			password: '',
 		},
 	});
+
+	async function onSubmit(data: z.infer<typeof formSchema>) {
+		const dto: AccessAccountDto = {
+			documento: data.cpf,
+			senha: data.password,
+		};
+
+		try {
+			await store.login(dto);
+
+			toast({
+				variant: 'success',
+				title: 'Sucesso!',
+				description: 'Login aprovado, acessando o sistema.',
+			});
+
+			setTimeout(() => {
+				navigate('./home');
+			}, 2000);
+		} catch (error) {
+			if (error instanceof Error) {
+				toast({
+					variant: 'destructive',
+					title: 'Ops! Algo deu errado.',
+					description: `${error.message}`,
+				});
+			} else {
+				toast({
+					variant: 'destructive',
+					title: 'Ops! Algo deu errado.',
+					description: 'Erro desconhecido ao acessar o sistema.',
+				});
+			}
+		}
+	}
 
 	return (
 		<>
@@ -49,7 +86,7 @@ function AccessAccountPage() {
 													<Input
 														placeholder="000.000.000-00"
 														value={field.value}
-														maxLength={11}
+														maxLength={14}
 														onChange={(e) => field.onChange(formatDocument(e.target.value))}
 													/>
 												</FormControl>
@@ -79,16 +116,18 @@ function AccessAccountPage() {
 								</Button>
 							</form>
 						</Form>
-
-						<div className="mt-4 text-center text-sm">
-							Você não tem uma conta?{' '}
-							<a href="./criar-conta" className="underline underline-offset-4">
-								Cadastre aqui
-							</a>
-						</div>
+						<Button
+							type="submit"
+							className="w-full mt-2"
+							variant={'secondary'}
+							onClick={() => navigate('./criar-conta')}
+						>
+							Cadastre aqui
+						</Button>
 					</CardContent>
 				</Card>
 			</div>
+			<Toaster />
 		</>
 	);
 }
